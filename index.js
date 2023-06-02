@@ -1,14 +1,14 @@
-import { Console, log } from 'console'
+
 import express from 'express'
 import fs from 'fs'
-// import cors from 'cors'
+import cors from 'cors'
 
 const app =express()
 app.use(express.static('../todoapp/build'))
 
 app.use(express.json())
 
-// app.use(cors())
+app.use(cors())
 
 app.post('/db/register', (req,res)=>{
 	const userData = req.body
@@ -41,22 +41,31 @@ app.post('/db/login', (req,res)=>{
 		}
 		let match = false
 		const allUsers =JSON.parse(data)
-		console.log(allUsers)
+		console.log(userData)
 		allUsers.forEach((val)=>{
 			if(val.userName === userData.userName && val.password === userData.password){
 				match = true
 			}
 		})
 		if(match===true){
-			res.json({
-				success:true
-			})
+			fs.readFile('localDB/taskLists.json', 'utf-8', (err, data)=>{
+				if(err){
+					res.status(500).send('read file error')
+				}
+				const allLists =JSON.parse(data)
+				console.log(allLists)
+				const taskLists = allLists.find(val=> val.userName === userData.userName)
+				res.json({
+					success:true,
+					message: 'User not found',
+					taskLists,
+				})
+			})	
 		}
 		else{
 			res.json({
 				success:false,
 				message: 'User not found'
-
 			})
 		}
 
@@ -84,7 +93,7 @@ app.get('/db/:user', (req, res)=>{
 
 app.post('/db/update', (req,res)=>{
 	const userData = req.body
-
+	console.log(userData)
 	fs.readFile('localDB/taskLists.json', 'utf-8', (err, data)=>{
 		if(err){
 			console.error(err)
@@ -96,6 +105,7 @@ app.post('/db/update', (req,res)=>{
 			if(val.userName === userData.userName){
 				val=userData
 				match = true
+				 match = true
 			}
 			return val
 		})
@@ -111,28 +121,43 @@ app.post('/db/update', (req,res)=>{
 					message: 'db updated'
 				})
 		})
-
-		fs.writeFile('localDB/taskLists.json', JSON.stringify(newList), (err)=>{
-			if(err){
-				console.error(err)
-				res.status(500).send('parse error')
-			}
-			res.json({
-				success:true,
-				message: 'db updated'
+		if(match===false){
+			taskList.push(userData)
+			fs.writeFile('localDB/taskLists.json', JSON.stringify(taskList), (err)=>{
+				if(err){
+					console.error(err)
+					res.status(500).send('parse error')
+				}
+				res.json({
+					success:true,
+					message: 'db updated'
+				})
 			})
-		})
-	}
+		}
+
+		else{
+			fs.writeFile('localDB/taskLists.json', JSON.stringify(newList), (err)=>{
+				if(err){
+					console.error(err)
+					res.status(500).send('parse error')
+				}
+				res.json({
+					success:true,
+					message: 'db updated'
+				})
+			})
+		}
+	})
 })
-})
 
 
 
 
-app.listen('4400',(err)=>{
+
+app.listen('4001',(err)=>{
 	if(err){
 		console.log("Server error", err);
 	}
-	console.log('Server running on port 4400');
+	console.log('Server running on port 4001');
 })
 
