@@ -82,8 +82,6 @@ app.get('/db/:user', (req, res)=>{
 
 
 
-
-
 app.post('/db/update', (req,res)=>{
 	const userData = req.body
 
@@ -92,13 +90,26 @@ app.post('/db/update', (req,res)=>{
 			console.error(err)
 			res.status(500).send('read file error')
 		}
-
+		let match = false
 		let taskList = JSON.parse(data)
 		const newList= taskList.map((val)=>{
 			if(val.userName === userData.userName){
 				val=userData
+				match = true
 			}
 			return val
+		})
+		if(match===false){
+			taskList.push(userData)
+			fs.writeFile('localDB/taskLists.json', JSON.stringify(taskList), (err)=>{
+				if(err){
+					console.error(err)
+					res.status(500).send('parse error')
+				}
+				res.json({
+					success:true,
+					message: 'db updated'
+				})
 		})
 
 		fs.writeFile('localDB/taskLists.json', JSON.stringify(newList), (err)=>{
@@ -111,17 +122,17 @@ app.post('/db/update', (req,res)=>{
 				message: 'db updated'
 			})
 		})
-	})
+	}
+})
 })
 
 
 
 
-
-app.listen('4000',(err)=>{
+app.listen('4400',(err)=>{
 	if(err){
 		console.log("Server error", err);
 	}
-	console.log('Server running on port 4000');
+	console.log('Server running on port 4400');
 })
 
