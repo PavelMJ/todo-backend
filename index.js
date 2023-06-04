@@ -1,7 +1,9 @@
 
 import express from 'express'
 import fs from 'fs'
+import db from 'mongoose'
 import cors from 'cors'
+
 
 const app = express()
 app.use(express.static('../todoapp/build'))
@@ -10,24 +12,48 @@ app.use(express.json())
 
 app.use(cors())
 
-app.post('/db/register', (req, res) => {
-	const userData = req.body
+db.connect('mongodb+srv://PavelM:srspremium@cluster0.31x9fjj.mongodb.net/todo?retryWrites=true&w=majority')
 
-	fs.readFile('localDB/users.json', 'utf8', (err, data) => {
-		if (err) {
-			res.status(500).send('read file error')
-			return
-		}
-		let userList = JSON.parse(data)
-		userList.push(userData)
-		fs.writeFile('localDB/users.json', JSON.stringify(userList), (err) => {
-			if (err) {
-				console.error(err)
-				res.status(500).send('')
-			}
-			res.json(userList)
-		})
-	})
+.then(() => { console.log('db connected') })
+
+.catch((err) => console.log('DB error', err));
+
+
+const userSchema= new db.Schema ({
+	userName:{
+		type: String,
+		required: true,
+		unique: true
+	},
+	email:{
+		type: String,
+		required: true,
+		unique: true
+	},
+	password:{
+		type: String,
+		required: true,
+		unique: true
+	},
+	avatarUrl: String,
+
+})
+
+const taskSchema = new db.Schema({
+	userName: String,
+	data: Array
+})
+
+const UserModel = db.model('Users', userSchema)
+const TaskModel=db.model('Tasks', taskSchema)
+
+
+
+
+app.post('/db/register', async(req, res) => {
+	const doc = new 
+
+
 })
 
 app.post('/db/login', (req, res) => {
