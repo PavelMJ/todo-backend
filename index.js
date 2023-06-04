@@ -51,8 +51,13 @@ const TaskModel=db.model('Tasks', taskSchema)
 
 
 app.post('/db/register', async(req, res) => {
-	const doc = new 
-
+	const doc = new UserModel ({
+		userName: req.body.userName,
+		email: req.body.email,
+		password: req.body.password
+	})
+	const user = await doc.save()
+	res.json(user)
 
 })
 
