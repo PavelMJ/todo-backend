@@ -3,6 +3,7 @@ import express from 'express'
 import fs from 'fs'
 import db from 'mongoose'
 import cors from 'cors'
+import print from './print.js'
 
 
 const app = express()
@@ -13,24 +14,22 @@ app.use(express.json())
 app.use(cors())
 
 db.connect('mongodb+srv://PavelM:srspremium@cluster0.31x9fjj.mongodb.net/todo?retryWrites=true&w=majority')
-
-.then(() => { console.log('db connected') })
-
-.catch((err) => console.log('DB error', err));
+	.then(() => { console.log('db connected') })
+	.catch((err) => console.log('DB error', err));
 
 
-const userSchema= new db.Schema ({
-	userName:{
+const userSchema = new db.Schema({
+	userName: {
 		type: String,
 		required: true,
 		unique: true
 	},
-	email:{
+	email: {
 		type: String,
 		required: true,
 		unique: true
 	},
-	password:{
+	password: {
 		type: String,
 		required: true,
 		unique: true
@@ -45,62 +44,53 @@ const taskSchema = new db.Schema({
 })
 
 const UserModel = db.model('Users', userSchema)
-const TaskModel=db.model('Tasks', taskSchema)
+const TaskModel = db.model('Tasks', taskSchema)
 
 
 
 
-app.post('/db/register', async(req, res) => {
-	const doc = new UserModel ({
+app.post('/db/register', async (req, res) => {
+	const userDoc = new UserModel({
 		userName: req.body.userName,
 		email: req.body.email,
 		password: req.body.password
 	})
-	const user = await doc.save()
-	res.json(user)
+	const taskDoc = new TaskModel({
+		userName: req.body.userName,
+		data:[]
+	})
+	const user = await userDoc.save()
+	const taskList = await taskDoc.save()
+	res.json({
+		success: true,
+		message:`user ${user.userName} is registred`,
+		data: taskList
+	})
 
 })
 
-app.post('/db/login', (req, res) => {
-	const userData = {
-		userName: req.body.userName,
-		password: req.body.password
-	}
+app.post('/db/login', async (req, res) => {
+	try {
+		const userData = await TaskModel.findOne({ userName: req.body.userName })
 
-	fs.readFile('localDB/users.json', 'utf-8', (err, data) => {
-		if (err) {
-			res.status(500).send('read file error')
-		}
-		let match = false
-		const allUsers = JSON.parse(data)
-		allUsers.forEach((val) => {
-			if (val.userName === userData.userName && val.password === userData.password) {
-				match = true
-			}
-		})
-		if (match === true) {
-			fs.readFile('localDB/taskLists.json', 'utf-8', (err, data) => {
-				if (err) {
-					res.status(500).send('read file error')
-				}
-				const allLists = JSON.parse(data)
-				console.log(allLists)
-				const taskLists = allLists.find(val => val.userName === userData.userName)
-				res.json({
-					success: true,
-					message: 'User not found',
-					taskLists,
-				})
+		if (!userData) {
+			res.json({
+				success: false,
+				message: `user ${req.body.userName} not found`
 			})
 		}
 		else {
-			res.json({
-				success: false,
-				message: 'User not found'
-			})
+			print(userData)
+			res.json(userData.data)
 		}
 
-	})
+	} catch (error) {
+		console.log(error);
+
+		res.status(500).json({
+			massege: "No access"
+		})
+	}
 })
 
 app.get('/db/:user', (req, res) => {
@@ -121,49 +111,28 @@ app.get('/db/:user', (req, res) => {
 
 
 
-app.post('/db/update', (req, res) => {
-	const userData = req.body
-	console.log(userData)
-	fs.readFile('localDB/taskLists.json', 'utf-8', (err, data) => {
-		if (err) {
-			console.error(err)
-			res.status(500).send('read file error')
+app.put('/db/update', async(req, res) => {
+	try {
+		const newData =req.body.data
+		const updated= await TaskModel.updateOne(
+			{userName: req.body.userName},
+			{$set:{data: newData}}
+			)
+		if(updated.modifiedCount===0){
+			res.json({
+				success: false,
+				message: `object did't changed`
+			})
 		}
-		let match = false
-		let taskList = JSON.parse(data)
-		const newList = taskList.map((val) => {
-			if (val.userName === userData.userName) {
-				val = userData
-				match = true
-			}
-			return val
+		print(updated)
+		res.json({
+			success: true,
+			message: 'data updated'
 		})
-		if (match === false) {
-			taskList.push(userData)
-			fs.writeFile('localDB/taskLists.json', JSON.stringify(taskList), (err) => {
-				if (err) {
-					console.error(err)
-					res.status(500).send('parse error')
-				}
-				res.json({
-					success: true,
-					message: 'db updated'
-				})
-			})
-		}
-		else {
-			fs.writeFile('localDB/taskLists.json', JSON.stringify(newList), (err) => {
-				if (err) {
-					console.error(err)
-					res.status(500).send('parse error')
-				}
-				res.json({
-					success: true,
-					message: 'db updated'
-				})
-			})
-		}
-	})
+	} catch (error) {
+		
+	}
+
 })
 
 

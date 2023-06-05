@@ -9,7 +9,7 @@
 				"tasks": [
 					{
 						"id": 5,
-						"task": "b,hhg",
+						"task": "to call Jon",
 						"complete": true
 					}
 				]
@@ -26,7 +26,7 @@
 		"userName": "tino",
 		"data": [
 			{
-				"id": 2,
+				"id": 1,
 				"name": "my Tasks",
 				"color": "#eb5ea0",
 				"tasks": [
