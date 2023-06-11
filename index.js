@@ -109,8 +109,6 @@ app.get('/db/:user', (req, res) => {
 	})
 })
 
-
-
 app.put('/db/update', async(req, res) => {
 	try {
 		const newData =req.body.data
@@ -139,10 +137,10 @@ app.put('/db/update', async(req, res) => {
 
 
 
-app.listen('4001', (err) => {
+app.listen('4444', (err) => {
 	if (err) {
 		console.log("Server error", err);
 	}
-	console.log('Server running on port 4001');
+	console.log('Server running on port 4444');
 })
 
