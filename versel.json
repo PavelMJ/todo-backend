@@ -1,0 +1,5 @@
+{
+  "version": 2,
+  "builds": [{ "stc": "./index.js", "use": "@versel/node" }],
+  "routes": [{ "src": "/(.*)", "dest": "/" }]
+}

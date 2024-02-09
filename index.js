@@ -2,7 +2,7 @@ import express from "express";
 import fs from "fs";
 import cors from "cors";
 
-const PORT = 4000;
+const PORT = 80;
 
 const app = express();
 app.use(express.static("./build"));
